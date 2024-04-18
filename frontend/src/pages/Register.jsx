@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import {useDispatch, useSelector} from 'react-redux'
 import { registerSellerAsync } from '../api/sellerSlice';
+import { useNavigate } from 'react-router-dom';
 
 function Register() {
     const [formData, setFormData] = useState({
@@ -11,17 +12,36 @@ function Register() {
     });
     
     const dispatch = useDispatch();
-    const {isLoading, error} = useSelector((state) => state.seller);
+    const {isLoading, error, token} = useSelector((state) => state.seller);
+    const navigate = useNavigate();
 
     const handleChange = async (e) => {
         const {name, value} = e.target;
-        console.log(name, value);
+        // console.log(name, value);
         setFormData({...formData, [name]: value})
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        dispatch(registerSellerAsync(formData))
+        dispatch(registerSellerAsync(formData)).then((resultAction) => {
+            console.log(resultAction);
+            const token = resultAction.payload.token;
+            if (token) {
+                localStorage.setItem('token', token);
+            }
+        });
+        setFormData({
+            firstName: '',
+            lastName: '',
+            email: '',
+            password: ''
+        });
+        if(error === 'Email is already exists'){
+            navigate('signup')
+        }else{
+            navigate('/')
+        }
+        
     }
 
     return (
@@ -36,14 +56,16 @@ function Register() {
                 </div>
                 <div className="mb-4">
                     <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="Email" className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500" />
+                    {error && <p className="mt-2 text-red-500 text-sm">{error}</p>}
+
                 </div>
+                
                 <div className="mb-4">
                     <input type="password" name="password" value={formData.password} onChange={handleChange} placeholder="Password" className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500" />
                 </div>
                 <button type="submit" disabled={isLoading} className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:bg-blue-600">
                     {isLoading ? 'Registering...' : 'Register'}
                 </button>
-                {error && <p className="mt-2 text-red-500 text-sm">{error}</p>}
             </form>
         </div>
     )

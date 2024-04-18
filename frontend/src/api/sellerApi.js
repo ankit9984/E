@@ -10,6 +10,11 @@ const registerSeller = async (sellerData) => {
     return await sellerApi.post('/', sellerData)
 };
 
+const logOutSeller = async () => {
+    return await sellerApi.post('/logout')
+};
+
 export {
-    registerSeller
+    registerSeller,
+    logOutSeller
 }
